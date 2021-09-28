@@ -1,2 +1,18 @@
-# AlgorithmNotebook
-My own algorithm notebook including some algorithm introductions and templates.
+# Algorithm Notebook
+这是一个个人的算法笔记本，包含我个人对一些算法的理解，同时用于存储个人模板
+
+以数据结构和字符串为主
+
+
+
+
+
+#### 补全计划：
+
+整体二分
+
+网络流、费用流
+
+K-D Tree
+
+Splay
