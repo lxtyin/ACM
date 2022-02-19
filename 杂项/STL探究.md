@@ -96,3 +96,78 @@ struct node{
 
 正确搞法，在 $num$ 相同时，随便定一个规则来按照 $cs$ 排序，保证不同元素不会同时满足 $!(a<b)$ 和 $!(b<a)$
 
+
+
+#### lower_bound和upper_bound
+
+```C++
+lower_bound(起始位置，结束位置，比较值)
+```
+
+寻找`[起始位置, 结束位置)` 上大于等于比较值的第一个位置，返回的是地址或迭代器，若未找到则返回结束位置
+
+upper_bound则为寻找大于值的第一个
+
+```c++
+lower_bound(起始位置，结束位置，比较值，条件)
+```
+
+寻找`[起始位置, 结束位置)` 上第一个不符合条件的位置，upper_bound也是这样
+
+这个条件函数的两个参数，第一个是比较值，第二个是二分中当前的值，源码大概长这样：
+
+```c++
+template <class ForwardIterator, class T>
+ForwardIterator upper_bound (ForwardIterator first, ForwardIterator last, const T& val, _Compare __comp)
+{
+    ForwardIterator it;
+    iterator_traits<ForwardIterator>::difference_type count, step;
+    count = std::distance(first,last);
+    while (count>0)
+    {
+        it = first; step=count/2; std::advance (it,step);
+        if (!comp(val,*it))  // 关键看这里
+            { first=++it; count-=step+1;  }
+        else count=step;
+    }
+    return first;
+}
+```
+
+正常使用时，需要重载的运算符也是 `比较值<枚举值`（我也不知道怎么描述 看例子：
+
+```c++
+struct node{
+	int l, r;
+};
+
+vector<node> s;
+lower_bound(s.begin(), s.end(), 3);
+```
+
+我试图在 `s` 中找到第一个 `l>=3` 的node，需要的运算符是：`int < node` 而不是 `node < int`，在struct中重载和int的运算符是无效的，要重载int对node的运算符。
+
+```c++
+bool operator <(const int &x, const node &y){
+    return x < y.l;
+}
+```
+
+和上面那种差不多，总之比较值在左边
+
+
+
+
+
+#### emplace_back
+
+和push_back的本质区别在于，它直接在目标位置构造，而非先构造一个对象，再移动
+
+使用上，emplace_back可以直接传入参数列表，自动调用相应对象的初始化列表
+
+```c++
+vector<pair<int, int>> v;
+v.push_back({1, 2});
+v.emplace_back(1, 2);
+```
+
