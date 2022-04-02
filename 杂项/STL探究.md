@@ -114,48 +114,28 @@ lower_bound(起始位置，结束位置，比较值，条件)
 
 寻找`[起始位置, 结束位置)` 上第一个不符合条件的位置，upper_bound也是这样
 
-这个条件函数的两个参数，第一个是比较值，第二个是二分中当前的值，源码大概长这样：
+这个条件函数的两个参数中的第二个是比较值，其中一段源码大概长这样：
 
-```c++
-template <class ForwardIterator, class T>
-ForwardIterator upper_bound (ForwardIterator first, ForwardIterator last, const T& val, _Compare __comp)
-{
-    ForwardIterator it;
-    iterator_traits<ForwardIterator>::difference_type count, step;
-    count = std::distance(first,last);
-    while (count>0)
-    {
-        it = first; step=count/2; std::advance (it,step);
-        if (!comp(val,*it))  // 关键看这里
-            { first=++it; count-=step+1;  }
-        else count=step;
-    }
-    return first;
-}
+```C++
+while (__len > 0) {
+  _DistanceType __half = __len >> 1;
+  _ForwardIterator __middle = __first;
+  std::advance(__middle, __half);
+  if (__comp(__middle, __val))//主要看这里，比较值在第二个参数
+      ...
 ```
 
-正常使用时，需要重载的运算符也是 `比较值<枚举值`（我也不知道怎么描述 看例子：
+正常使用时，需要重载的运算符是 `枚举值<比较值`（我也不知道怎么描述 看例子：
 
 ```c++
 struct node{
 	int l, r;
 };
-
 vector<node> s;
 lower_bound(s.begin(), s.end(), 3);
 ```
 
-我试图在 `s` 中找到第一个 `l>=3` 的node，需要的运算符是：`int < node` 而不是 `node < int`，在struct中重载和int的运算符是无效的，要重载int对node的运算符。
-
-```c++
-bool operator <(const int &x, const node &y){
-    return x < y.l;
-}
-```
-
-和上面那种差不多，总之比较值在左边
-
-
+我试图在 `s` 中找到第一个 `l>=3` 的node，需要的运算符是：`node < int`
 
 
 
