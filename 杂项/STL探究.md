@@ -151,3 +151,27 @@ v.push_back({1, 2});
 v.emplace_back(1, 2);
 ```
 
+
+
+
+
+#### bitset
+
+用法整理：
+
+```c++
+bitset<n> b;//初始化为0
+bitset<n> b(x);//初始化为unsigned long类型的二进制表示
+bitset<n> b(s);//用字符串初始化
+
+b.any();//是否存在1
+b.count();//1的个数
+b.size();//总长度
+b[x];//第x位（最低位为0）的数
+b.set();//全部置1
+b.reset();//全部置0
+b.flip();//全部取反
+b.to_ulong();//返回unsigned long值
+```
+
+同时，位运算对bitset都适用。
