@@ -19,13 +19,13 @@
 
 同时，中间重叠部分是一个border，绿色部分构成了一组等差数列border，公差为周期：
 
-![0](https://images.cnblogs.com/cnblogs_com/blogs/684906/galleries/2042436/o_211125110022_0.png)
+![0](pic/0.png)
 
-![1](https://images.cnblogs.com/cnblogs_com/blogs/684906/galleries/2042436/o_211125110029_1.png)
+![1](pic/1.png)
 
 前 $T$ 个字符是周期的话，后 $T$ 个显然也是周期：
 
-![2](https://images.cnblogs.com/cnblogs_com/blogs/684906/galleries/2042436/o_211125110038_2.png)
+![2](pic/2.png)
 
 这个引理建立了border与周期之间的关系
 
@@ -66,7 +66,7 @@
 
 **应用：为什么要考虑border中的等差数列？**
 
-![4](https://images.cnblogs.com/cnblogs_com/blogs/684906/galleries/2042436/o_211125105957_4.png)
+![4](pic/4.png)
 
 如图所示，$s$ 的所有成等差数列的border，其下一位一定相同
 

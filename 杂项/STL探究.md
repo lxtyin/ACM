@@ -7,25 +7,32 @@
 迭代器基本就是指针
 
 ```c++
-	vector<int>::iterator it = t.begin();//声明迭代器
+vector<int>::iterator it = t.begin();//声明迭代器
 ```
 
 所有容器的 $.begin().end()$ 方法都能获取容器第一个元素，最后一个元素的下一位的迭代器
 
 ```c++
-	for(set<int>::iterator it = t.begin(); it != t.end(); it++){
-	    cout << *it << '\n';
-	}//输出set中所有元素
+for(set<int>::iterator it = t.begin(); it != t.end(); it++){
+	cout << *it << '\n';
+}//输出set中所有元素
 ```
 
 可以看到获取元素值（*it）和枚举（it++）都和指针是一样的
 
-也可以用在 sort 里面
+迭代器分为两种：顺序型（vector, set等），节点型（map, set等）
 
-```c++
-vector<int> v;
-sort(v.begin(), v.end());//常用的对vector排序
-```
+两种迭代器都可以自增或自减（节点型也有遍历顺序），但只有顺序型可以进行加减操作（ it+2，it1-it2 等）
+
+另外有反向迭代器 $.rend(), rbegin()$，$rbegin()$ 指向最后一个元素，$rend()$ 指向第一个元素的前一个元素。反向迭代器的加减会反过来。
+
+
+
+用迭代器遍历时，插入一般不会有问题，删除时，被删除元素的迭代器会变得无效，不能对无效的迭代器做加减操作。正确做法：
+
+节点型：$set.erase(it++)$ 这么写，删除 $it$ 后它仍能正确移动到下一位。
+
+顺序型：$it=set.erase(it)$ erase 会返回删除元素的下一个位置的迭代器。
 
 
 
