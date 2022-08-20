@@ -6,9 +6,7 @@ LCT类似树剖，尝试通过维护链上信息来解决树上问题。但它�
 
 由于实链不断变化，不能再像树剖一样用线段树维护，而是改用splay维护，这棵splay按照深度构建，也就是说它的中序遍历就是原树中从上到下的一条链。
 
-（其他太多懒得写了 贴 https://blog.csdn.net/qq_36551189/article/details/79152612
-
-https://www.cnblogs.com/flashhu/p/8324551.html 这位大佬的图非常好，完全展示了“把链当集合来看待”的思想
+（其他太多懒得写了 贴一个 https://www.cnblogs.com/flashhu/p/8324551.html 这位大佬的图非常好，完全展示了“把链当集合来看待”的思想
 
 ------
 
@@ -26,21 +24,19 @@ https://www.cnblogs.com/flashhu/p/8324551.html 这位大佬的图非常好，完
 
 初始时这个Splay的所有节点都是独立的，连实边时我们让两个节点互认父子关系，他们就合并到一个集合（链）上了；
 
-连`x,y`间一条虚边的时候，让 **$y$ 所在的splay根节点**认 $x$ 作父亲，但父亲不认儿子（这里比较神奇），这样 $xy$ 仍属于不同的集合，这条虚边表示的是原树上的关系
+连`x,y`间一条虚边的时候，让 **$y$ 所在的splay根节点**认 $x$ 作父亲，但父亲不认儿子（这里比较神奇），这样 $xy$ 仍属于不同的集合，这条虚边表示的是原树上的关系。
 
-这样的话，实边转虚边也非常容易了，直接由父亲单方面接触关系即可；虚边转实边则可以无视虚边的存在重新连一遍
+更具体的，$ch$ 这个数组存的是splay上的儿子，$fa$ 存splay上的父亲，对于splay的根节点，$fa$ 存这条链顶的父亲。
 
-
-
-另外还有一点：由于access的操作是由下到上的，不便于push_down，所以一般要改造一下splay，先用一个栈预判路径，从上到下push_down一遍。
+这样的话，实边转虚边也非常容易了，直接由父亲单方面解除关系即可；虚边转实边则可以无视虚边的存在重新连一遍
 
 
 
 理解的时候需要分清楚splay的根节点和原树的根节点，搞清楚就好理解了（详见下面代码注释
 
-```C++
+```c++
 struct LCT{
-    int ch[maxn][2], fa[maxn], val[maxn], sum[maxn], swp[maxn];
+    int ch[maxn][2], fa[maxn], val[maxn], sum[maxn], swp[maxn]; //n个点 信息都在这 O(n)清空即初始化
     inline int dir(int p){ return ch[fa[p]][1] == p;}
     inline void push_up(int p){ sum[p] = sum[ch[p][0]] ^ sum[ch[p][1]] ^ val[p];}
     inline bool isroot(int p){ return fa[p] == 0 || (ch[fa[p]][0] != p && ch[fa[p]][1] != p);} //是否为splay的根（不是原树的根！）
@@ -108,7 +104,7 @@ struct LCT{
         makeroot(x);
         if(x != findroot(y)) fa[x] = y;//注意，连虚边一定要让所在splay的根节点的fa连出去，这里x已经是splay根节点了而y不一定
     }
-    void cut(int x, int y){
+    void cut(int x, int y){//删边
         if(findroot(x) != findroot(y)) return;
         split(x, y);//记牢此时x为原树根，y为splay根，原树根仅仅是深度最小的节点，完全可以有fa
         if(fa[x] != y || ch[x][1]) return;//要x,y之间有连边，就要它们在splay的中序遍历上相邻
@@ -142,6 +138,48 @@ void solve(){
     }
 }
 ```
+
+
+
+#### 信息的维护
+
+信息的维护主要依赖于Splay，在平衡树上每个节点存一棵子树的信息，需要push_up和push_down
+
+push_up自底向上维护，非常简单，只需保证push_up时两个儿子信息正确即可，可以在splay的rotate时push_up，因为是自底向上旋，故可以顺着更新。
+
+push_down是自顶向下的，需要在splay时，提前将这条链从上到下push_down一次（即模板中的push_all），复杂度不变。
+
+access也是自底向上的操作，可以很方便地push_up。
+
+其他操作均在涉及实边改变时维护，因为基本都以splay和access为先导，故基本无需考虑push_down的问题。
+
+进行区间操作（加tag）时，对要操作的链split，然后对其splay根节点加tag即可。
+
+**就此模板而言，各处需要push_up和push_down的地方均已处理，只需实现这两个函数即可。**
+
+
+
+#### 应用
+
+##### 维护连通性
+
+即我们非常想要的可删边并查集，findroot 即可。
+
+
+
+##### 维护树上任意链信息
+
+个人觉得LCT最优美的地方，可以任意从树中剥出一条链且保持其信息。
+
+主要依赖Splay维护，LCT在上述模板中，结构变换时该push_up和push_down的地方都已经处理了，只需实现这两个东西即可。
+
+如上述模板实现了维护链上异或和。
+
+
+
+##### 查询深度/距离
+
+LCT会不断换根，查询深度就相当于查询 $x$ 和指定根节点 $y$ 之间的距离，直接 $split$ 得出 $size$ 即可
 
 
 
