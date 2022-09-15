@@ -5,134 +5,119 @@ FHQ Treap 维护BST性质的关键是**merge的时候一定要让左树小于右
 inline 啥的优化自己看着加 ==
 
 ```c++
-struct Treap{
-    int l,r;
-    int val, siz;
-    int pri;
-}t[maxn*2];
-int tcnt = 0;
-int root = 0;
-
-int newNode(int val){
-    t[++tcnt].siz = 1;
-    t[tcnt].pri = rand();
-    t[tcnt].val = val;
-    return tcnt;
-}
-
-void push_up(int p){
-    t[p].siz = t[t[p].l].siz + t[t[p].r].siz + 1;
-}
-
-void split(int p,int &l,int &r,int k){
-    if(!p){
-        l=r=0;
-        return;
+//T需要支持-1和<，一般只为int和ll
+template<typename T>
+class Treap {
+    struct node {
+        int l, r, siz, pri;
+        T val;
+        node() = default;
+        node(int l, int r, int siz, int pri, T val):
+                l(l), r(r), siz(siz), pri(pri), val(val){};
+    };
+    vector<node> t;
+    int root;
+    inline int newNode(T val) {
+        t.emplace_back(0, 0, 1, rand(), val);
+        return t.size() - 1;
     }
-    if(t[p].val <= k){
-        l = p;
-        split(t[p].r, t[p].r, r, k);
-    }else{
-        r = p;
-        split(t[p].l, l, t[p].l, k);
+    void push_up(int p) {
+        t[p].siz = t[t[p].l].siz + t[t[p].r].siz + 1;
     }
-    push_up(p);
-}
-
-//合并时需注意l子树都小于r子树
-//merge处尝试了引用式：void merge(int &p, int l, int r)，并不比这种快
-int merge(int l,int r){
-    if(!l || !r) return l+r;
-
-    if(t[l].pri > t[r].pri){
-        t[l].r = merge(t[l].r,r);
-        push_up(l);
-        return l;
-    }else{
-        t[r].l = merge(l,t[r].l);
-        push_up(r);
-        return r;
+    //小于等于k的划分到l
+    void split(int p, int& l, int& r, T k) {
+        if(!p) {
+            l = r = 0;
+            return;
+        }
+        if(k < t[p].val) {
+            r = p;
+            split(t[p].l, l, t[p].l, k);
+        } else {
+            l = p;
+            split(t[p].r, t[p].r, r, k);
+        }
+        push_up(p);
     }
-}
 
-//按val-1拆成两半，加一个val点，再依次合并
-void insert(int val){
-    if(root == 0){
-        root = newNode(val);
-        return;
+    //合并时需注意l子树都小于r子树
+    //merge处尝试了引用式：void merge(int &p, int l, int r)，并不比这种快
+    int merge(int l, int r) {
+        if(!l || !r) return l + r;
+        if(t[l].pri > t[r].pri) {
+            t[l].r = merge(t[l].r, r);
+            push_up(l);
+            return l;
+        } else {
+            t[r].l = merge(l, t[r].l);
+            push_up(r);
+            return r;
+        }
     }
-    int x,y;
-    split(root,x,y,val-1);
-    int nw = newNode(val);
-    x = merge(x,nw);
-    root = merge(x,y);
-}
 
-void delet(int val){
-    int x,y,z;
-    split(root,x,y,val);//大于val的被y筛走了
-    split(x,x,z,val-1);//小于等于val-1的被x筛走了，z中全是val
-    z = merge(t[z].l,t[z].r);
-    x = merge(x,z);
-    root = merge(x,y);
-}
+public:
+    Treap<T>() : t(vector<node>(1)), root(0) {
+        //选择性在此处插入-inf和inf
+    };
 
-//小于val的数量
-int getrank(int val){
-    int x,y;
-    split(root,x,y,val-1);
-    int res = t[x].siz + 1;
-    root = merge(x,y);
-    return res;
-}
-
-//第k大值
-int getkth(int p,int k){
-    if(t[t[p].l].siz == k-1) return t[p].val;
-    if(t[t[p].l].siz >= k) return getkth(t[p].l, k);
-    else return getkth(t[p].r, k-t[t[p].l].siz-1);
-}
-
-//小于val的最大数
-int precursor(int val){
-    int x,y;
-    split(root,x,y,val-1);
-    int res = getkth(x,t[x].siz);
-    root = merge(x,y);
-    return res;
-}
-
-//大于val的最小数
-int nextcursor(int val){
-    int x,y;
-    split(root,x,y,val);
-    int res = getkth(y,1);
-    root = merge(x,y);
-    return res;
-}
-
-//貌似也可
-//int precursor(int val){
-//    return getkth(root, getrank(val)-1);
-//}
-//int nextcursor(int val){
-//    return getkth(root, getrank(val+1));
-//}
-
-void solve(){
-    int n;
-    scanf("%d",&n);
-    int opt,x;
-    while(n--){
-        scanf("%d%d",&opt,&x);
-        if(opt == 1) insert(x);
-        if(opt == 2) delet(x);
-        if(opt == 3) printf("%d\n",getrank(x));
-        if(opt == 4) printf("%d\n",getkth(root,x));
-        if(opt == 5) printf("%d\n",precursor(x));
-        if(opt == 6) printf("%d\n",nextcursor(x));
+    //按val-1拆成两半，加一个val点，再依次合并
+    void insert(T val) {
+        if(root == 0) {
+            root = newNode(val);
+            return;
+        }
+        int x, y;
+        split(root, x, y, val - 1);
+        int nw = newNode(val);
+        x = merge(x, nw);
+        root = merge(x, y);
     }
-}
+    void erase(T val) {
+        int x, y, z;
+        split(root, x, y, val);//大于val的被y筛走了
+        split(x, x, z, val - 1);//小于等于val-1的被x筛走了，z中全是val
+        z = merge(t[z].l, t[z].r); //不存在时自动不删
+        x = merge(x, z);
+        root = merge(x, y);
+    }
+
+    //小于val的数量+1, 注意若存在-inf，需另-1
+    int getrank(T val) {
+        int x, y;
+        split(root, x, y, val - 1);
+        int res = t[x].siz + 1;
+        root = merge(x, y);
+        return res;
+    }
+
+    //第k大值
+    T getkth(int p, int k) {
+         if(k <= 0 || k > t[p].siz) return -1;//不存在
+        if(t[t[p].l].siz == k - 1) return t[p].val;
+        if(t[t[p].l].siz >= k) return getkth(t[p].l, k);
+        else return getkth(t[p].r, k - t[t[p].l].siz - 1);
+    }
+
+    //小于val的最大数
+    T precursor(T val) {
+        int x, y;
+        split(root, x, y, val - 1);
+        T res = getkth(x, t[x].siz);
+        if(res == -1) res = -2147483647;
+        root = merge(x, y);
+        return res;
+    }
+
+    //大于val的最小数
+    T nextcursor(T val) {
+        int x, y;
+        split(root, x, y, val);
+        T res = getkth(y, 1);
+        if(res == -1) res = 2147483647;
+        root = merge(x, y);
+        return res;
+    }
+};
 ```
 
 
